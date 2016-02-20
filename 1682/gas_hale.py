@@ -76,7 +76,7 @@ class GasPoweredHALE(Model):
 
         # Weight model
         W_airframe = Variable('W_{airframe}', 'lbf', 'Airframe weight')
-        W_pay = Variable(r'W_{pay}', 10, 'lbf', 'Payload weight')
+        W_pay = Variable('W_{pay}', 10, 'lbf', 'Payload weight')
         W_fuel = Variable('W_{fuel}', 'lbf', 'Fuel Weight')
         W_zfw = Variable('W_{zfw}', 'lbf', 'Zero fuel weight')
         W_avionics = Variable('W_{avionics}', 2, 'lbf', 'Avionics weight')
@@ -87,7 +87,7 @@ class GasPoweredHALE(Model):
         # w_tail = Variable('w_{tail}','lbf','Tail weight')
         # w_boom = Variable('w_{boom}','lbf','Boom weight')
 
-        f_airframe = Variable('f_{airframe}', 0.3, '-',
+        f_airframe = Variable('f_{airframe}', 0.35, '-',
                               'Airframe weight fraction')
         g = Variable('g', 9.81, 'm/s^2', 'Gravitational acceleration')
 
@@ -101,8 +101,8 @@ class GasPoweredHALE(Model):
         z_bre = Variable("z_bre", "-", "breguet coefficient")
         h_fuel = Variable("h_{fuel}", 42e6, "J/kg", "heat of combustion")
         eta_0 = Variable("\\eta_0", 0.2, "-", "overall efficiency")
-        BSFC = Variable('BSFC', 0.527, 'lbf/hr/hp', 'brake specific fuel consumption')
-        t = Variable('t', 4, 'days', 'time on station')
+        BSFC = Variable('BSFC', 0.65, 'lbf/hr/hp', 'brake specific fuel consumption')
+        t = Variable('t', 5, 'days', 'time on station')
 
         constraints.extend([z_bre >= V*t*BSFC*CD/CL/eta_prop,
                             W_fuel/W_zfw >= te_exp_minus1(z_bre, 3)])
