@@ -113,7 +113,7 @@ class GasPoweredHALE(Model):
 
         g = Variable('g', 9.81, 'm/s^2', 'Gravitational acceleration')
 
-        constraints.extend([M_skin == rho_skin*2*S*(1+0.2*t_c),
+        constraints.extend([M_skin >= rho_skin*S*(1.977 + .52*t_c),
                             F == W_cent*N,
                             c == S/b,
                             M == b*F/8,
