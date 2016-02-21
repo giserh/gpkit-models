@@ -72,7 +72,7 @@ class GasPoweredHALE(Model):
         E_cap = Variable('E_cap', 2e7, 'psi','Youngs modulus cf')
 
         M = Variable('M', 'N*m','center bending moment')
-        d_tip = Variable('d','m','Tip deflection') #need to add constraint
+        d_tip = Variable('d','ft','Tip deflection') #need to add constraint
         h_spar = Variable('h_{spar}','m','Spar height') 
         sig = Variable('sig',475e6,'Pa','Cap stress') #http://www.performance-composites.com/carbonfibre/mechanicalproperties_2.asp
         F = Variable('F','N','load on wings')
@@ -113,7 +113,7 @@ class GasPoweredHALE(Model):
 
         g = Variable('g', 9.81, 'm/s^2', 'Gravitational acceleration')
 
-        constraints.extend([M_skin == rho_skin*2*S,
+        constraints.extend([M_skin == rho_skin*2*S*(1+0.2*t_c),
                             F == W_cent*N,
                             c == S/b,
                             M == b*F/8,
