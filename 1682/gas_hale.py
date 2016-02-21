@@ -21,20 +21,20 @@ class GasPoweredHALE(Model):
         CThrust = Variable('C_{Thrust}',0.5,'-','Thrust coefficient')
         CTorque = Variable('C_{Torque}','-','Torque coefficient')
         nRot = Variable('n_{Rot}','1/s','Propeller rotation speed')
-        D_Prop = Variable('D_{Prop}',0.6,'m','Propeller diameter')
+        D_Prop = Variable('D_{Prop}',2,'ft','Propeller diameter')
 
         eta_prop = Variable(r'\eta_{prop}',0.9,'-', 'Propulsive efficiency')
         Mach_tip = Variable('Mach_{tip}','-','Propeller tip Mach number')
         rho = Variable(r'\rho', 'kg/m^3')
 
-        constraints.extend([P_shaft == V*W*CD/CL/eta_prop,   # eta*P = D*V
+        constraints.extend([#P_shaft == V*W*CD/CL/eta_prop,   # eta*P = D*V
                             W == 0.5*rho*V**2*CL*S,
                             T == 0.5*rho*V**2*CD*S])
 
         # Aerodynamics model
-        Cd0 = Variable('C_{d0}', 0.01, '-', "non-wing drag coefficient")
+        Cd0 = Variable('C_{d0}', 0.02, '-', "non-wing drag coefficient")
         CLmax = Variable('C_{L-max}', 1.5, '-', 'maximum lift coefficient')
-        e = Variable('e', 0.92, '-', "spanwise efficiency")
+        e = Variable('e', 0.9, '-', "spanwise efficiency")
         A = Variable('A', '-', "aspect ratio")
         b = Variable('b', 'ft', 'span')
         mu = Variable(r'\mu', 1.5e-5, 'N*s/m^2', "dynamic viscosity")
@@ -44,9 +44,8 @@ class GasPoweredHALE(Model):
         cl_16 = Variable("cl_{16}", 0.0001, "-", "profile stall coefficient")
         
         constraints.extend([CD >= Cd0 + 2*Cf*Kwing + CL**2/(pi*e*A) + cl_16*CL**16,
-                            #T == CD*1/2*rho*V**2*S,
                             T == P_shaft*(CThrust/CPower)/(nRot*D_Prop),
-                            #eta_prop == T*V/P_shaft,
+                            eta_prop == T*V/P_shaft,
                             #AdvRatio == V/(nRot*D_Prop),
                             #AdvRatio >= 1, AdvRatio <= 2.8,
                             #AdvRatio == 1.8/0.23*CPower + 0.23,
@@ -70,28 +69,28 @@ class GasPoweredHALE(Model):
         V_cap = Variable('V_{cap}','m**3','cap volume')
         M_cap = Variable('M_{cap}','kg','cap mass')
         M_skin = Variable('M_{skin}','kg','skin mass')
-        E_cap = Variable('E_cap', 2e7, 'psi','Youngs modulus cf')
+        E_cap = Variable('E_{cap}', 2e7, 'psi','Youngs modulus cf')
 
         M = Variable('M', 'N*m','center bending moment')
-        d_tip = Variable('d','ft','Tip deflection') #need to add constraint
+        d_tip = Variable('d_{tip}','ft','Tip deflection') #need to add constraint
         h_spar = Variable('h_{spar}','m','Spar height') 
         sig = Variable('sig',475e6,'Pa','Cap stress') #http://www.performance-composites.com/carbonfibre/mechanicalproperties_2.asp
         F = Variable('F','N','load on wings')
-        S_l = Variable('S_l','Pa','Shear load') #need to add constraint
+        S_l = Variable('S_{load}','Pa','Shear load') #need to add constraint
         N = Variable('N',5,'-','Load factor') #load rating for max number of g's
         P = Variable('P', 'N', 'cap load')
-        c = Variable('c','m','wing chord') #assumes straight, untapered wing
-        rho_cap = Variable('rho_cap',1.76, 'g/cm^3','density of cf')
-        t_cap = Variable('t_cap',.028,'in','spar cap thickness') #arbitrarily placed based on available cf
-        w_cap = Variable('w_cap','in','spar cap width')
+        c = Variable('c','ft','wing chord') #assumes straight, untapered wing
+        rho_cap = Variable('rho_{cap}',1.76, 'g/cm^3','density of cf')
+        t_cap = Variable('t_{cap}',.028,'in','spar cap thickness') #arbitrarily placed based on available cf
+        w_cap = Variable('w_{cap}','in','spar cap width')
         W = Variable('W', 'lbf', 'Aircraft weight')
-        d_tip_max = Variable('d_max','ft','max wing tip deflection')
-        W_wing = Variable('W_wing','lbf','Total wing structural weight')
+        d_tip_max = Variable('d_{tip_max}','ft','max wing tip deflection')
+        W_wing = Variable('W_{wing}','lbf','Total wing structural weight')
        
         t_c = Variable('t_c',0.1,'-','thickness ratio') #find better number
 
         # Engine Weight Model
-        W_eng = Variable('W_{eng}', 26.2, 'lbf', 'Engine weight')
+        W_eng = Variable('W_{eng}', 6, 'lbf', 'Engine weight')
         #W_engmin = Variable('W_{min}', 13, 'lbf', 'min engine weight')
         #W_engmax = Variable('W_{max}', 1500, 'lbf', 'max engine weight')
         #eta_t = Variable('\\eta_t', 0.5, '-', 'percent throttle')
@@ -138,10 +137,11 @@ class GasPoweredHALE(Model):
         #                     W >= W_fuel + W_zfw])
 
         # Breguet Range
-        z_bre = Variable("z_bre", "-", "breguet coefficient")
+        z_bre = Variable("z_{bre}", "-", "breguet coefficient")
         h_fuel = Variable("h_{fuel}", 42e6*0.4535, "J/lbf", "heat of combustion")
-        eta_0 = Variable('eta_0', "-", "overall efficiency")
-        BSFC = Variable('BSFC', 0.527, 'lbf/hr/hp', 'brake specific fuel consumption')
+        eta_0 = Variable('eta_{0}', "-", "overall efficiency")
+        BSFC = Variable('BSFC', 0.6, 'lbf/hr/hp', 'brake specific fuel consumption')
+        #5.27 best case
         t = Variable('t', 6, 'days', 'time on station')
         Wdot_fuel = Variable('mdot_{fuel}','lbf/hr','Fuel flow rate')
 
@@ -152,7 +152,7 @@ class GasPoweredHALE(Model):
                             ])
 
         # Atmosphere model
-        h = Variable("h", "ft", "Altitude")
+        h = Variable("h","ft", "Altitude")
         gam = Variable('gam',1.4,'-','Heat capacity ratio of air')
         p_sl = Variable("p_{sl}", 101325, "Pa", "Pressure at sea level")
         T_sl = Variable("T_{sl}", 288.15, "K", "Temperature at sea level")
@@ -185,9 +185,9 @@ class GasPoweredHALE(Model):
             h >= tan_lu*0.5*footprint + footprint**2/8./R_earth])
 
         # wind speed model
-        V_wind = Variable('V_{wind}', 'm/s', 'wind speed')
+        V_wind = Variable('V_{wind}','m/s', 'wind speed')
         wd_cnst = Variable('wd_{cnst}', 0.0015, 'm/s/ft', 
-                           'wind speed constant predited by model')
+                           'wind speed constant predicted by model')
                             #0.002 is worst case, 0.0015 is mean at 45d
         wd_ln = Variable('wd_{ln}', 8.845, 'm/s',
                          'linear wind speed variable')
