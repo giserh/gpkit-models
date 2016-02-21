@@ -6,7 +6,6 @@ gpkit.settings['latex_modelname'] = False
 # to modify the GasPoweredHALE model, edit gas_hale.py
 
 m = GasPoweredHALE()
-m.substitutions.update({'t': 6})
 sol = m.solve()
 
 x = sol('W_{fuel}')/sol('W')

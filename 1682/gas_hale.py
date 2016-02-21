@@ -33,7 +33,7 @@ class GasPoweredHALE(Model):
         Cd0 = Variable('C_{d0}', 0.01, '-', "non-wing drag coefficient")
         CLmax = Variable('C_{L-max}', 1.5, '-', 'maximum lift coefficient')
         e = Variable('e', 0.9, '-', "spanwise efficiency")
-        A = Variable('A', 20, '-', "aspect ratio")
+        A = Variable('A', '-', "aspect ratio")
         b = Variable('b', 'ft', 'span')
         mu = Variable(r'\mu', 1.5e-5, 'N*s/m^2', "dynamic viscosity")
         Re = Variable("Re", '-', "Reynolds number")
@@ -72,7 +72,7 @@ class GasPoweredHALE(Model):
 
 
         M = Variable('M', 'N*m','center bending moment')
-        d = Variable('d','m','Tip deflection') #need to add constraint
+        d_tip = Variable('d','m','Tip deflection') #need to add constraint
         h_spar = Variable('h_{spar}','m','Spar height') 
         sig = Variable('sig',475e6,'Pa','Cap stress') #http://www.performance-composites.com/carbonfibre/mechanicalproperties_2.asp
         F = Variable('F','N','load on wings')
@@ -84,7 +84,7 @@ class GasPoweredHALE(Model):
         t_cap = Variable('t_cap',.028,'in','spar cap thickness') #arbitrarily placed based on available cf
         w_cap = Variable('w_cap','in','spar cap width')
         W = Variable('W', 'lbf', 'Aircraft weight')
-        d_max = Variable('d_max',0.75,'m','max wing tip deflection')
+        d_tip_max = Variable('d_max',0.75,'m','max wing tip deflection')
         W_wing = Variable('W_wing','lbf','Total wing structural weight')
        
         t_c = Variable('t_c',0.1,'-','thickness ratio') #find better number
@@ -110,11 +110,6 @@ class GasPoweredHALE(Model):
         W_zfw = Variable('W_{zfw}', 'lbf', 'Zero fuel weight')
         W_avionics = Variable('W_{avionics}', 2, 'lbf', 'Avionics weight')
         wl = Variable('wl', 'lbf/ft^2', 'wing loading')
-        
-        # Higher fidelity weight modeling
-        # w_wing = Variable('w_{wing}','lbf','Wing weight')
-        # w_tail = Variable('w_{tail}','lbf','Tail weight')
-        # w_boom = Variable('w_{boom}','lbf','Boom weight')
 
         g = Variable('g', 9.81, 'm/s^2', 'Gravitational acceleration')
 
@@ -133,8 +128,8 @@ class GasPoweredHALE(Model):
                             W_zfw >= W_fix +W_eng+W_fuse+M_skin*g + M_cap*g,
                             w_cap == A_capcent/t_cap,
                             wl ==W/S,
-                            d == b**2*sig/(4*E_cap*h_spar),
-                            d <=d_max])
+                            d_tip == b**2*sig/(4*E_cap*h_spar),
+                            d_tip <= d_tip_max])
 
         # constraints.extend([W_airframe >= W*f_airframe,
         #                     W_zfw >= W_airframe + W_eng + W_pay + W_avionics,
@@ -145,7 +140,7 @@ class GasPoweredHALE(Model):
         h_fuel = Variable("h_{fuel}", 42e6, "J/kg", "heat of combustion")
         eta_0 = Variable("\\eta_0", 0.2, "-", "overall efficiency")
         BSFC = Variable('BSFC', 0.527, 'lbf/hr/hp', 'brake specific fuel consumption')
-        t = Variable('t', 4, 'days', 'time on station')
+        t = Variable('t', 6, 'days', 'time on station')
 
         constraints.extend([z_bre >= V*t*BSFC*CD/CL/eta_prop,
                             W_fuel/W_zfw >= te_exp_minus1(z_bre, 3)])
@@ -192,8 +187,8 @@ class GasPoweredHALE(Model):
                             # model predicting worse case scenario at 45 deg latitude
 
         # fuel volume model
-        rho_fuel = Variable('\\rho_{fuel}', 719, 'kg/m^3', 'density of gasoline')
-        constraints.extend([S**1.5*A**-0.5*t_c >= W_fuel/g/rho_fuel])
+        #rho_fuel = Variable('\\rho_{fuel}', 719, 'kg/m^3', 'density of gasoline')
+        #constraints.extend([S**1.5*A**-0.5*t_c >= W_fuel/g/rho_fuel])
 
         # Climb model
         # rho_sl = Variable('\\rho_{sl}',1.225,'kg/m**3','Density at sea level')
