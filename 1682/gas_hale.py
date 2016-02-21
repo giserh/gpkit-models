@@ -10,7 +10,7 @@ class GasPoweredHALE(Model):
         CD = Variable('C_D', '-', 'Drag coefficient')
         CL = Variable('C_L', '-', 'Lift coefficient')
         P_shaft = Variable('P_{shaft}', 'hp', 'Shaft power')
-        T = Variable('Thrust','N','Cruise thrust')
+        T = Variable('Thrust','lbf','Cruise thrust')
         S = Variable('S', 'm^2', 'Wing reference area')
         V = Variable('V', 'm/s', 'Cruise velocity')
         W = Variable('W', 'lbf', 'Aircraft weight')
@@ -27,7 +27,8 @@ class GasPoweredHALE(Model):
         rho = Variable(r'\rho', 'kg/m^3')
 
         constraints.extend([P_shaft == V*W*CD/CL/eta_prop,   # eta*P = D*V
-                            W == 0.5*rho*V**2*CL*S])
+                            W == 0.5*rho*V**2*CL*S,
+                            T == 0.5*rho*V**2*CD*S])
 
         # Aerodynamics model
         Cd0 = Variable('C_{d0}', 0.01, '-', "non-wing drag coefficient")
@@ -62,14 +63,13 @@ class GasPoweredHALE(Model):
         W_cent = Variable('W_{cent}', 'lbf','Center aircraft weight')
         W_fix = Variable('W_{fix}',10,'lbf','fixed weight')
         W_fuel = Variable('W_{fuel}','lbf','fuel weight')
-        W_fuse = Variable('W_{fuse}',30,'lbf','fuselage weight') #probably needs structural model/better estimate
+        W_fuse = Variable('W_{fuse}',20,'lbf','fuselage weight') #probably needs structural model/better estimate
         A_capcent = Variable('A_{capcent}','m**2','cap area at center')
         A_cap = Variable('A_{cap}','m**2','cap area') #currently assumes constant area
         V_cap = Variable('V_{cap}','m**3','cap volume')
         M_cap = Variable('M_{cap}','kg','cap mass')
         M_skin = Variable('M_{skin}','kg','skin mass')
         E_cap = Variable('E_cap', 2e7, 'psi','Youngs modulus cf')
-
 
         M = Variable('M', 'N*m','center bending moment')
         d_tip = Variable('d','m','Tip deflection') #need to add constraint
@@ -84,7 +84,7 @@ class GasPoweredHALE(Model):
         t_cap = Variable('t_cap',.028,'in','spar cap thickness') #arbitrarily placed based on available cf
         w_cap = Variable('w_cap','in','spar cap width')
         W = Variable('W', 'lbf', 'Aircraft weight')
-        d_tip_max = Variable('d_max',0.75,'m','max wing tip deflection')
+        d_tip_max = Variable('d_max','ft','max wing tip deflection')
         W_wing = Variable('W_wing','lbf','Total wing structural weight')
        
         t_c = Variable('t_c',0.1,'-','thickness ratio') #find better number
@@ -129,6 +129,7 @@ class GasPoweredHALE(Model):
                             w_cap == A_capcent/t_cap,
                             wl ==W/S,
                             d_tip == b**2*sig/(4*E_cap*h_spar),
+                            d_tip_max == b/8, # tip deflection less than 25% of half-span
                             d_tip <= d_tip_max])
 
         # constraints.extend([W_airframe >= W*f_airframe,
@@ -137,13 +138,17 @@ class GasPoweredHALE(Model):
 
         # Breguet Range
         z_bre = Variable("z_bre", "-", "breguet coefficient")
-        h_fuel = Variable("h_{fuel}", 42e6, "J/kg", "heat of combustion")
-        eta_0 = Variable("\\eta_0", 0.2, "-", "overall efficiency")
+        h_fuel = Variable("h_{fuel}", 42e6*0.4535, "J/lbf", "heat of combustion")
+        eta_0 = Variable('eta_0', "-", "overall efficiency")
         BSFC = Variable('BSFC', 0.527, 'lbf/hr/hp', 'brake specific fuel consumption')
         t = Variable('t', 6, 'days', 'time on station')
+        Wdot_fuel = Variable('mdot_{fuel}','lbf/hr','Fuel flow rate')
 
         constraints.extend([z_bre >= V*t*BSFC*CD/CL/eta_prop,
-                            W_fuel/W_zfw >= te_exp_minus1(z_bre, 3)])
+                            W_fuel/W_zfw >= te_exp_minus1(z_bre, 3),
+                            Wdot_fuel == BSFC*P_shaft,
+                            eta_0 == (T*V)/(h_fuel*Wdot_fuel),
+                            ])
 
         # Atmosphere model
         h = Variable("h", "ft", "Altitude")
