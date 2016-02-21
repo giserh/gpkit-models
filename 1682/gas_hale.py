@@ -24,6 +24,7 @@ class GasPoweredHALE(Model):
         D_Prop = Variable('D_{Prop}',0.6,'m','Propeller diameter')
 
         eta_prop = Variable(r'\eta_{prop}',0.9,'-', 'Propulsive efficiency')
+        Mach_tip = Variable('Mach_{tip}','-','Propeller tip Mach number')
         rho = Variable(r'\rho', 'kg/m^3')
 
         constraints.extend([P_shaft == V*W*CD/CL/eta_prop,   # eta*P = D*V
@@ -33,7 +34,7 @@ class GasPoweredHALE(Model):
         # Aerodynamics model
         Cd0 = Variable('C_{d0}', 0.01, '-', "non-wing drag coefficient")
         CLmax = Variable('C_{L-max}', 1.5, '-', 'maximum lift coefficient')
-        e = Variable('e', 0.9, '-', "spanwise efficiency")
+        e = Variable('e', 0.92, '-', "spanwise efficiency")
         A = Variable('A', '-', "aspect ratio")
         b = Variable('b', 'ft', 'span')
         mu = Variable(r'\mu', 1.5e-5, 'N*s/m^2', "dynamic viscosity")
@@ -44,7 +45,7 @@ class GasPoweredHALE(Model):
         
         constraints.extend([CD >= Cd0 + 2*Cf*Kwing + CL**2/(pi*e*A) + cl_16*CL**16,
                             #T == CD*1/2*rho*V**2*S,
-                            #T <= P_shaft*(CThrust/CPower)/(nRot*D_Prop),
+                            T == P_shaft*(CThrust/CPower)/(nRot*D_Prop),
                             #eta_prop == T*V/P_shaft,
                             #AdvRatio == V/(nRot*D_Prop),
                             #AdvRatio >= 1, AdvRatio <= 2.8,
@@ -152,17 +153,25 @@ class GasPoweredHALE(Model):
 
         # Atmosphere model
         h = Variable("h", "ft", "Altitude")
+        gam = Variable('gam',1.4,'-','Heat capacity ratio of air')
         p_sl = Variable("p_{sl}", 101325, "Pa", "Pressure at sea level")
         T_sl = Variable("T_{sl}", 288.15, "K", "Temperature at sea level")
         L_atm = Variable("L_{atm}", 0.0065, "K/m", "Temperature lapse rate")
-        T_atm = Variable("T_{atm}", "K", "air temperature")
+        T_atm = Variable("T_{atm}", "K", "Air temperature")
+        a_atm = Variable("a_{atm}",'m/s','Speed of sound at altitude')
         M_atm = Variable("M_{atm}", 0.0289644, "kg/mol",
                          "Molar mass of dry air")
-        R_atm = Variable("R_{atm}", 8.31447, "J/mol/K")
+        R_atm = Variable("R_{atm}", 8.31447,'J/mol/K', "Universal gas constant")
+        R_spec = Variable('R_{spec}',287.058,'J/kg/K','Specific gas constant of air')
         TH = (g*M_atm/R_atm/L_atm).value.magnitude  # dimensionless
+
         constraints.extend([h <= 20000*units.m,  # Model valid to top of troposphere
                             T_sl >= T_atm + L_atm*h,     # Temp decreases w/ altitude
-                            rho <= p_sl*T_atm**(TH-1)*M_atm/R_atm/(T_sl**TH)])
+                            rho <= p_sl*T_atm**(TH-1)*M_atm/R_atm/(T_sl**TH),
+                            a_atm == (gam*R_spec*T_atm)**0.5,
+                            Mach_tip == pi*D_Prop*nRot/a_atm,
+                            Mach_tip <= 0.85
+                            ])
             # http://en.wikipedia.org/wiki/Density_of_air#Altitude
 
         # station keeping requirement
