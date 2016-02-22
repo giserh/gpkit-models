@@ -64,7 +64,7 @@ class GasPoweredHALE(Model):
         W_cent = Variable('W_{cent}', 'lbf','Center aircraft weight')
         W_fix = Variable('W_{fix}',10,'lbf','fixed weight')
         W_fuel = Variable('W_{fuel}','lbf','fuel weight')
-        W_fuse = Variable('W_{fuse}',20,'lbf','fuselage weight') #probably needs structural model/better estimate
+        W_fuse = Variable('W_{fuse}',30,'lbf','fuselage weight') #probably needs structural model/better estimate
         A_capcent = Variable('A_{capcent}','m**2','cap area at center')
         A_cap = Variable('A_{cap}','m**2','cap area') #currently assumes constant area
         V_cap = Variable('V_{cap}','m**3','cap volume')
@@ -125,10 +125,10 @@ class GasPoweredHALE(Model):
                             V_cap >= A_capcent*b/3,
                             M_cap == rho_cap*V_cap,
                             h_spar <= t_c*c,
-                            W_cent >= W_fix + W_fuel + W_eng + W_fuse,
+                            W_cent >= W_fix + W_fuel + W_eng + W_fuse + W_avionics,
                             W_wing >= M_skin*g+M_cap*g,
-                            W >= W_cent + W_wing*1.2, #1.2 factor to account for tail weight
-                            W_zfw >= W_fix +W_eng+W_fuse+M_skin*g + M_cap*g,
+                            W >= W_cent + W_wing*1.3, #1.2 factor to account for tail weight
+                            W_zfw >= W_fix +W_eng+W_fuse+M_skin*g + M_cap*g + W_avionics,
                             w_cap == A_capcent/t_cap,
                             wl ==W/S,
                             d_tip == b**2*sig/(4*E_cap*h_spar),
@@ -143,7 +143,7 @@ class GasPoweredHALE(Model):
         z_bre = Variable("z_{bre}", "-", "breguet coefficient")
         h_fuel = Variable("h_{fuel}", 42e6*0.4535, "J/lbf", "heat of combustion")
         eta_0 = Variable('eta_{0}', "-", "overall efficiency")
-        BSFC = Variable('BSFC', 0.65, 'lbf/hr/hp', 'brake specific fuel consumption')
+        BSFC = Variable('BSFC', 0.6, 'lbf/hr/hp', 'brake specific fuel consumption')
         #5.27 best case
         t = Variable('t', 6, 'days', 'time on station')
         Wdot_fuel = Variable('mdot_{fuel}','lbf/hr','Fuel flow rate')
