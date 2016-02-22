@@ -50,15 +50,7 @@ class GasPoweredHALE(Model):
 
 
         # Engine Weight Model
-        W_eng = Variable('W_{eng}', 'N', 'Engine weight')
-        W_engmin = Variable('W_{min}', 13, 'N', 'min engine weight')
-        W_engmax = Variable('W_{max}', 1500, 'N', 'max engine weight')
-        eta_t = Variable('\\eta_t', 0.25, '-', 'percent throttle')
-        eng_cnst = Variable('eng_{cnst}', 0.0013, '-',
-                            'engine constant based off of power weight model')
-        constraints.extend([W_eng >= W_engmin,
-                            W_eng <= W_engmax,
-                            W_eng >= (P_shaft/eta_t)**1.1572*eng_cnst* units('N/watt^1.1572')])
+        W_eng = Variable('W_{eng}', 3, 'lbf', 'Engine weight')
 
         # Weight model
         W_airframe = Variable('W_{airframe}', 'lbf', 'Airframe weight')

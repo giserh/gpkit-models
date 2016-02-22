@@ -9,7 +9,7 @@ class GasPoweredHALE(Model):
         # Steady level flight relations
         CD = Variable('C_D', '-', 'Drag coefficient')
         CL = Variable('C_L', '-', 'Lift coefficient')
-        P_shaft = Variable('P_{shaft}', 'hp', 'Shaft power')
+        P_shaft = Variable('P_{shaft}', 'W', 'Shaft power')
         T = Variable('Thrust','N','Cruise thrust')
         S = Variable('S', 'm^2', 'Wing reference area')
         V = Variable('V', 'm/s', 'Cruise velocity')
@@ -42,16 +42,6 @@ class GasPoweredHALE(Model):
         cl_16 = Variable("cl_{16}", 0.0001, "-", "profile stall coefficient")
         
         constraints.extend([CD >= Cd0 + 2*Cf*Kwing + CL**2/(pi*e*A) + cl_16*CL**16,
-                            #T == CD*1/2*rho*V**2*S,
-                            #T <= P_shaft*(CThrust/CPower)/(nRot*D_Prop),
-                            #eta_prop == T*V/P_shaft,
-                            #AdvRatio == V/(nRot*D_Prop),
-                            #AdvRatio >= 1, AdvRatio <= 2.8,
-                            #AdvRatio == 1.8/0.23*CPower + 0.23,
-                            #CPower == P_shaft/(rho*nRot**3*D_Prop**5),
-                            #CThrust == T/(rho*nRot**2*D_Prop**4),
-                            #P_shaft >= 2*pi*nRot*(CTorque*rho*nRot**2*D_Prop**5),
-                            eta_prop == 1/(2*pi)*(CThrust/CTorque)*AdvRatio,
                             b**2 == S*A,
                             CL <= CLmax, 
                             Re == rho*V/mu*(S/A)**0.5,
@@ -59,18 +49,15 @@ class GasPoweredHALE(Model):
 
 
         # Engine Weight Model
-        W_eng = Variable('W_{eng}', 'lbf', 'Engine weight')
-        W_engmin = Variable('W_{min}', 13, 'lbf', 'min engine weight')
-        W_engmax = Variable('W_{max}', 1500, 'lbf', 'max engine weight')
-        eta_t = Variable('\\eta_t', 0.5, '-', 'percent throttle')
+        W_eng = Variable('W_{eng}', 'N', 'Engine weight')
+        W_engmin = Variable('W_{min}', 13, 'N', 'min engine weight')
+        W_engmax = Variable('W_{max}', 1500, 'N', 'max engine weight')
+        eta_t = Variable('\\eta_t', 0.25, '-', 'percent throttle')
         eng_cnst = Variable('eng_{cnst}', 0.0013, '-',
                             'engine constant based off of power weight model')
         constraints.extend([W_eng >= W_engmin,
                             W_eng <= W_engmax,
-                            W_eng >= (P_shaft/eta_t)**1.1572*eng_cnst* units('lbf/watt^1.1572')])
-        #W_eng_installed = Variable('W_{eng-installed}','lbf','Installed engine weight')
-        
-                            #W_eng_installed >= 2.572*W_eng**0.922*units('lbf')**0.078])
+                            W_eng >= (P_shaft/eta_t)**1.1572*eng_cnst* units('N/watt^1.1572')])
 
         # Weight model
         W_airframe = Variable('W_{airframe}', 'lbf', 'Airframe weight')
@@ -80,11 +67,6 @@ class GasPoweredHALE(Model):
         W_avionics = Variable('W_{avionics}', 2, 'lbf', 'Avionics weight')
         wl = Variable('wl', 'lbf/ft^2', 'wing loading')
         
-        # Higher fidelity weight modeling
-        # w_wing = Variable('w_{wing}','lbf','Wing weight')
-        # w_tail = Variable('w_{tail}','lbf','Tail weight')
-        # w_boom = Variable('w_{boom}','lbf','Boom weight')
-
         f_airframe = Variable('f_{airframe}', 0.35, '-',
                               'Airframe weight fraction')
         g = Variable('g', 9.81, 'm/s^2', 'Gravitational acceleration')
@@ -121,7 +103,7 @@ class GasPoweredHALE(Model):
             # http://en.wikipedia.org/wiki/Density_of_air#Altitude
 
         # station keeping requirement
-        footprint = Variable("d_{footprint}", 100, 'km',
+        footprint = Variable("d_{footprint}", 110, 'km',
                              "station keeping footprint diameter")
         lu = Variable(r"\theta_{look-up}", 5, '-', "look up angle")
         R_earth = Variable("R_{earth}", 6371, "km", "Radius of earth")
@@ -132,34 +114,12 @@ class GasPoweredHALE(Model):
 
         # wind speed model
         V_wind = Variable('V_{wind}', 30,  'm/s', 'wind speed')
-#        wd_cnst = Variable('wd_{cnst}', 0.0015, 'm/s/ft', 
-#                           'wind speed constant predited by model')
-#                            #0.002 is worst case, 0.0015 is mean at 45d
-#        wd_ln = Variable('wd_{ln}', 8.845, 'm/s',
-#                         'linear wind speed variable')
-#                        #13.009 is worst case, 8.845 is mean at 45deg
-#        h_min = Variable('h_{min}', 11800, 'ft', 'minimum height')
-#        h_max = Variable('h_{max}', 20866, 'ft', 'maximum height')
-        constraints.extend([#V_wind >= wd_cnst*h + wd_ln, 
-                            V >= V_wind])
-                            #h >= h_min,
-                            #h <= h_max])
-                            # model predicting worse case scenario at 45 deg latitude
+        constraints.extend([V >= V_wind])
 
         # fuel volume model
         tc = Variable('tc', 0.1, '-', 'thickness to chord ratio')
         rho_fuel = Variable('\\rho_{fuel}', 719, 'kg/m^3', 'density of gasoline')
         constraints.extend([S**1.5*A**-0.5*tc >= W_fuel/g/rho_fuel])
-
-        # Climb model
-        # rho_sl = Variable('\\rho_{sl}',1.225,'kg/m**3','Density at sea level')
-        # P_shaft_lapse = Variable('P_{shaft-lapse}',0.714/40000,'1/ft','Shaft power lapse rate')
-        # P_shaft_to = Variable('P_{shaft-to}','hp','Shaft power on takeoff')
-
-        # constraints.extend([
-        # 	1 <= P_shaft_to/P_shaft + P_shaft_lapse*h,
-        # 	P_shaft_to >= P_shaft
-        # 	])
 
         objective = W
 
