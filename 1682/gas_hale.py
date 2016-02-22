@@ -16,8 +16,8 @@ class GasPoweredHALE(Model):
         W = Variable('W', 'lbf', 'Aircraft weight')
 
         # Propulsion metrics (for a 3 bladed propeller, activity factor 100, design CL = 0.5)
-        AdvRatio = Variable('J_{advance}',1.7,'-','Advance ratio')
-        CPower = Variable('C_{Power}',0.2,'-','Power coefficient')
+        AdvRatio = Variable('J_{advance}',2,'-','Advance ratio')
+        CPower = Variable('C_{Power}',0.3,'-','Power coefficient')
         CThrust = Variable('C_{Thrust}',0.5,'-','Thrust coefficient')
         CTorque = Variable('C_{Torque}','-','Torque coefficient')
         nRot = Variable('n_{Rot}','1/s','Propeller rotation speed')
