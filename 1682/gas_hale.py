@@ -13,11 +13,12 @@ class GasPoweredHALE(Model):
         T = Variable('Thrust','lbf','Cruise thrust')
         S = Variable('S', 'm^2', 'Wing reference area')
         V = Variable('V', 'm/s', 'Cruise velocity')
+        V_stall = Variable('V_{stall}','m/s','Stall speed at sea level')
         W = Variable('W', 'lbf', 'Aircraft weight')
 
         # Propulsion metrics (for a 3 bladed propeller, activity factor 100, design CL = 0.5)
         AdvRatio = Variable('J_{advance}',2,'-','Advance ratio')
-        CPower = Variable('C_{Power}',0.3,'-','Power coefficient')
+        CPower = Variable('C_{Power}',0.25,'-','Power coefficient')
         CThrust = Variable('C_{Thrust}',0.5,'-','Thrust coefficient')
         CTorque = Variable('C_{Torque}','-','Torque coefficient')
         nRot = Variable('n_{Rot}','1/s','Propeller rotation speed')
@@ -91,6 +92,8 @@ class GasPoweredHALE(Model):
 
         # Engine Weight Model
         W_eng = Variable('W_{eng}', 6, 'lbf', 'Engine weight')
+        #P_shaft_max_sl = Variable('P_{shaft max sl}',5.4,'hp','Maximum power at sea level')
+        #P_shaft_max =  Variable('P_{shaft max}','hp','Maximum power at altitude')
         #W_engmin = Variable('W_{min}', 13, 'lbf', 'min engine weight')
         #W_engmax = Variable('W_{max}', 1500, 'lbf', 'max engine weight')
         #eta_t = Variable('\\eta_t', 0.5, '-', 'percent throttle')
@@ -205,14 +208,15 @@ class GasPoweredHALE(Model):
         #constraints.extend([S**1.5*A**-0.5*t_c >= W_fuel/g/rho_fuel])
 
         # Climb model
-        # rho_sl = Variable('\\rho_{sl}',1.225,'kg/m**3','Density at sea level')
-        # P_shaft_lapse = Variable('P_{shaft-lapse}',0.714/40000,'1/ft','Shaft power lapse rate')
-        # P_shaft_to = Variable('P_{shaft-to}','hp','Shaft power on takeoff')
+        #rho_sl = Variable('\\rho_{sl}',1.225,'kg/m**3','Density at sea level')
+        #P_shaft_lapse = Variable('P_{shaft-lapse}',0.714/40000,'1/ft','Shaft power lapse rate')
 
-        # constraints.extend([
-        # 	1 <= P_shaft_to/P_shaft + P_shaft_lapse*h,
+        #constraints.extend([W == 1/2*rho_sl*V_stall**2*CLmax*S
+        #					])
+
+        #constraints.extend([1 <= P_shaft_max_sl/P_shaft_max + P_shaft_lapse*h
         # 	P_shaft_to >= P_shaft
-        # 	])
+        #					])
 
         objective = W
 
