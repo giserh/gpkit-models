@@ -50,7 +50,7 @@ class GasPoweredHALE(Model):
 
 
         # Engine Weight Model
-        W_eng = Variable('W_{eng}', 3, 'lbf', 'Engine weight')
+        W_eng = Variable('W_{eng}', 6, 'lbf', 'Engine weight')
 
         # Weight model
         W_airframe = Variable('W_{airframe}', 'lbf', 'Airframe weight')
