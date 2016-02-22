@@ -24,7 +24,7 @@ class GasPoweredHALE(Model):
         nRot = Variable('n_{Rot}','1/s','Propeller rotation speed')
         D_Prop = Variable('D_{Prop}',2,'ft','Propeller diameter')
 
-        eta_prop = Variable(r'\eta_{prop}',0.9,'-', 'Propulsive efficiency')
+        eta_prop = Variable(r'\eta_{prop}',0.85,'-', 'Propulsive efficiency')
         Mach_tip = Variable('Mach_{tip}','-','Propeller tip Mach number')
         rho = Variable(r'\rho', 'kg/m^3')
 
@@ -143,7 +143,7 @@ class GasPoweredHALE(Model):
         z_bre = Variable("z_{bre}", "-", "breguet coefficient")
         h_fuel = Variable("h_{fuel}", 42e6*0.4535, "J/lbf", "heat of combustion")
         eta_0 = Variable('eta_{0}', "-", "overall efficiency")
-        BSFC = Variable('BSFC', 0.6, 'lbf/hr/hp', 'brake specific fuel consumption')
+        BSFC = Variable('BSFC', 0.65, 'lbf/hr/hp', 'brake specific fuel consumption')
         #5.27 best case
         t = Variable('t', 6, 'days', 'time on station')
         Wdot_fuel = Variable('mdot_{fuel}','lbf/hr','Fuel flow rate')
