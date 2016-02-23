@@ -23,17 +23,17 @@ class GasPoweredHALE(Model):
         nRot = Variable('n_{Rot}','1/s','Propeller rotation speed')
         D_Prop = Variable('D_{Prop}',0.6,'m','Propeller diameter')
 
-        eta_prop = Variable(r'\eta_{prop}',0.9,'-', 'Propulsive efficiency')
+        eta_prop = Variable(r'\eta_{prop}',0.85,'-', 'Propulsive efficiency')
         rho = Variable(r'\rho', 'kg/m^3')
 
         constraints.extend([P_shaft == V*W*CD/CL/eta_prop,   # eta*P = D*V
                             W == 0.5*rho*V**2*CL*S])
 
         # Aerodynamics model
-        Cd0 = Variable('C_{d0}', 0.01, '-', "non-wing drag coefficient")
+        Cd0 = Variable('C_{d0}', 0.02, '-', "non-wing drag coefficient")
         CLmax = Variable('C_{L-max}', 1.5, '-', 'maximum lift coefficient')
         e = Variable('e', 0.9, '-', "spanwise efficiency")
-        A = Variable('A', 20, '-', "aspect ratio")
+        A = Variable('A', 14.5, '-', "aspect ratio")
         b = Variable('b', 'ft', 'span')
         mu = Variable(r'\mu', 1.5e-5, 'N*s/m^2', "dynamic viscosity")
         Re = Variable("Re", '-', "Reynolds number")
@@ -56,9 +56,7 @@ class GasPoweredHALE(Model):
         eta_t = Variable('\\eta_t', 0.25, '-', 'percent throttle')
         eng_cnst = Variable('eng_{cnst}', 0.0013, '-',
                             'engine constant based off of power weight model')
-        constraints.extend([W_eng >= W_engmin,
-                            W_eng <= W_engmax,
-                            W_eng >= (P_shaft/eta_t)**1.1572*eng_cnst* units('N/watt^1.1572')])
+        constraints.extend([W_eng >= (P_shaft/eta_t)**1.1572*eng_cnst* units('N/watt^1.1572')])
 
         # Weight model
         W_airframe = Variable('W_{airframe}', 'lbf', 'Airframe weight')
@@ -68,7 +66,7 @@ class GasPoweredHALE(Model):
         W_avionics = Variable('W_{avionics}', 2, 'lbf', 'Avionics weight')
         wl = Variable('wl', 'lbf/ft^2', 'wing loading')
         
-        f_airframe = Variable('f_{airframe}', 0.35, '-',
+        f_airframe = Variable('f_{airframe}', 0.25, '-',
                               'Airframe weight fraction')
         g = Variable('g', 9.81, 'm/s^2', 'Gravitational acceleration')
 
@@ -82,8 +80,8 @@ class GasPoweredHALE(Model):
         z_bre = Variable("z_bre", "-", "breguet coefficient")
         h_fuel = Variable("h_{fuel}", 42e6, "J/kg", "heat of combustion")
         eta_0 = Variable("\\eta_0", 0.2, "-", "overall efficiency")
-        BSFC = Variable('BSFC', 0.65, 'lbf/hr/hp', 'brake specific fuel consumption')
-        t = Variable('t', 5, 'days', 'time on station')
+        BSFC = Variable('BSFC', 0.6, 'lbf/hr/hp', 'brake specific fuel consumption')
+        t = Variable('t', 6, 'days', 'time on station')
 
         constraints.extend([z_bre >= V*t*BSFC*CD/CL/eta_prop,
                             W_fuel/W_zfw >= te_exp_minus1(z_bre, 3)])
@@ -104,7 +102,7 @@ class GasPoweredHALE(Model):
             # http://en.wikipedia.org/wiki/Density_of_air#Altitude
 
         # station keeping requirement
-        footprint = Variable("d_{footprint}", 110, 'km',
+        footprint = Variable("d_{footprint}", 100, 'km',
                              "station keeping footprint diameter")
         lu = Variable(r"\theta_{look-up}", 5, '-', "look up angle")
         R_earth = Variable("R_{earth}", 6371, "km", "Radius of earth")
