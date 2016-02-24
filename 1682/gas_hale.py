@@ -15,22 +15,13 @@ class GasPoweredHALE(Model):
         V = Variable('V', 'm/s', 'Cruise velocity')
         V_stall = Variable('V_{stall}','m/s','Stall speed at sea level')
         W = Variable('W', 'lbf', 'Aircraft weight')
+        rho = Variable(r'\rho', 'kg/m^3')
 
         # Propulsion metrics (for a 3 bladed propeller, activity factor 100, design CL = 0.5)
-        JAdvance = Variable('J_{advance}',2,'-','Advance ratio')
-        CPower = Variable('C_{Power}',0.25,'-','Power coefficient')
-        CThrust = Variable('C_{Thrust}',0.5,'-','Thrust coefficient')
-        CTorque = Variable('C_{Torque}','-','Torque coefficient')
-        RPM = Variable('RPM','1/min','Propeller rotation speed')
-        D_Prop = Variable('D_{Prop}',2,'ft','Propeller diameter')
-
-        eta_prop = Variable(r'\eta_{prop}',0.85,'-', 'Propulsive efficiency')
-        MTip = Variable('MTip','-','Propeller tip Mach number')
-        rho = Variable(r'\rho', 'kg/m^3')
 
         constraints.extend([#P_shaft == V*W*CD/CL/eta_prop,   # eta*P = D*V
                             W == 0.5*rho*V**2*CL*S,
-                            T == 0.5*rho*V**2*CD*S])
+                            T >= 0.5*rho*V**2*CD*S])
 
         # Aerodynamics model
         Cd0 = Variable('C_{d0}', 0.02, '-', "non-wing drag coefficient")
@@ -45,19 +36,32 @@ class GasPoweredHALE(Model):
         cl_16 = Variable("cl_{16}", 0.0001, "-", "profile stall coefficient")
         
         constraints.extend([CD >= Cd0 + 2*Cf*Kwing + CL**2/(pi*e*AR) + cl_16*CL**16,
-                            T == P_shaft*(CThrust/CPower)/(RPM*D_Prop),
+                            b**2 == S*AR,
+                            CL <= CLmax, 
+                            Re == rho*V/mu*(S/AR)**0.5,
+                            Cf >= 0.074/Re**0.2])
+
+        # Propellor Model
+        JAdvance = Variable('J_{advance}',2,'-','Advance ratio')
+        CPower = Variable('C_{Power}',0.25,'-','Power coefficient')
+        CThrust = Variable('C_{Thrust}',0.5,'-','Thrust coefficient')
+        CTorque = Variable('C_{Torque}','-','Torque coefficient')
+        RPM = Variable('RPM','1/min','Propeller rotation speed')
+        D_Prop = Variable('D_{Prop}',2,'ft','Propeller diameter')
+
+        eta_prop = Variable(r'\eta_{prop}',0.85,'-', 'Propulsive efficiency')
+        MTip = Variable('MTip','-','Propeller tip Mach number')
+
+        constraints.extend([T == P_shaft*(CThrust/CPower)/(RPM*D_Prop),
                             eta_prop == T*V/P_shaft,
+                            eta_prop == 1/(2*pi)*(CThrust/CTorque)*JAdvance,
                             #JAdvance == V/(RPM*D_Prop),
                             #JAdvance >= 1, JAdvance <= 2.8,
                             #JAdvance == 1.8/0.23*CPower + 0.23,
                             #CPower == P_shaft/(rho*RPM**3*D_Prop**5),
                             #CThrust == T/(rho*RPM**2*D_Prop**4),
                             #P_shaft >= 2*pi*RPM*(CTorque*rho*RPM**2*D_Prop**5),
-                            eta_prop == 1/(2*pi)*(CThrust/CTorque)*JAdvance,
-                            b**2 == S*AR,
-                            CL <= CLmax, 
-                            Re == rho*V/mu*(S/AR)**0.5,
-                            Cf >= 0.074/Re**0.2])
+                            ])
 
         #Structure parameters
         g = Variable('g', 9.81, 'm/s^2', 'Gravitational acceleration')
@@ -68,7 +72,8 @@ class GasPoweredHALE(Model):
         #Weights and masses
         m_cap = Variable('m_{cap}','kg','Cap mass')
         m_skin = Variable('m_{skin}','kg','Skin mass')
-        sigma_cap = Variable('sigma_capma_{cap}',475e6,'Pa','Cap stress') #http://www.performance-composites.com/carbonfibre/mechanicalproperties_2.asp
+        sigma_cap = Variable('sigma_capma_{cap}',475e6,'Pa','Cap stress') 
+        #http://www.performance-composites.com/carbonfibre/mechanicalproperties_2.asp
 
         W_cent = Variable('W_{cent}', 'lbf','Center aircraft weight')
         W_payload = Variable('W_{fix}',10,'lbf','Payload weight')
@@ -123,7 +128,7 @@ class GasPoweredHALE(Model):
                             W_engtot >= 2.572*W_eng**0.922*units('lbf')**0.078])
 
 	# Fuel Volume 
-        rho_fuel = Variable('\\rho_{fuel}', 6.01, 'lb/gal', 'density of 100LL')
+        rho_fuel = Variable('\\rho_{fuel}', 6.01, 'lbf/gallon', 'density of 100LL')
         constraints.extend([Vol_fuel == W_fuel/rho_fuel])
 
         # Structural constraints
@@ -156,9 +161,7 @@ class GasPoweredHALE(Model):
         mdot_fuel = Variable('mdot_{fuel}','kg/hr','Fuel flow rate')
 
         constraints.extend([z_bre >= V*t*BSFC*CD/CL/eta_prop,
-                            W_fuel/W_zfw >= te_exp_minus1(z_bre, 3),
-                            mdot_fuel == BSFC*P_shaft,
-                            eta_0 == (T*V)/(h_fuel*mdot_fuel)])
+                            W_fuel/W_zfw >= te_exp_minus1(z_bre, 3)])
 
         # Atmosphere model
         h = Variable("h","ft", "Altitude")
@@ -174,7 +177,7 @@ class GasPoweredHALE(Model):
         constraints.extend([h <= 20000*units.m,  # Model valid to top of troposphere
                             T_sl >= T_atm + L_atm*h,     # Temp decreases w/ altitude
                             rho <= p_sl*T_atm**(TH-1)/R_spec/(T_sl**TH),
-                            a_atm == (gam*R_spec*T_atm)**0.5,
+                            a_atm == (gamma*R_spec*T_atm)**0.5,
                             MTip == pi*D_Prop*RPM/a_atm,
                             MTip <= 0.85
                             ])
