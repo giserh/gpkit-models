@@ -59,38 +59,59 @@ class GasPoweredHALE(Model):
                             Re == rho*V/mu*(S/A)**0.5,
                             Cf >= 0.074/Re**0.2])
 
-        #Structure Variables
+        #Structure parameters
+        g = Variable('g', 9.81, 'm/s^2', 'Gravitational acceleration')
         rho_skin = Variable('rho_{skin}',200, 'g/m^2', 'Wing Skin Density')
-        W_cent = Variable('W_{cent}', 'lbf','Center aircraft weight')
-        W_fix = Variable('W_{fix}',10,'lbf','fixed weight')
-        W_fuel = Variable('W_{fuel}','lbf','fuel weight')
-        W_fuse = Variable('W_{fuse}',30,'lbf','fuselage weight') #probably needs structural model/better estimate
-        A_capcent = Variable('A_{capcent}','m**2','cap area at center')
-        A_cap = Variable('A_{cap}','m**2','cap area') #currently assumes constant area
-        V_cap = Variable('V_{cap}','m**3','cap volume')
-        M_cap = Variable('M_{cap}','kg','cap mass')
-        M_skin = Variable('M_{skin}','kg','skin mass')
+        rho_cap = Variable('rho_{cap}',1.76, 'g/cm^3','Density of cf')
         E_cap = Variable('E_{cap}', 2e7, 'psi','Youngs modulus cf')
 
-        M = Variable('M', 'N*m','center bending moment')
-        d_tip = Variable('d_{tip}','ft','Tip deflection') #need to add constraint
-        h_spar = Variable('h_{spar}','m','Spar height') 
+        #Weights and masses
+        M_cap = Variable('M_{cap}','kg','Cap mass')
+        M_skin = Variable('M_{skin}','kg','Skin mass')
         sig = Variable('sig',475e6,'Pa','Cap stress') #http://www.performance-composites.com/carbonfibre/mechanicalproperties_2.asp
-        F = Variable('F','N','load on wings')
+
+        W_cent = Variable('W_{cent}', 'lbf','Center aircraft weight')
+        W_fix = Variable('W_{fix}',10,'lbf','Fixed weight')
+        W_fuel = Variable('W_{fuel}','lbf','Fuel weight')
+        W_zfw = Variable('W_{zfw}', 'lbf', 'Zero fuel weight')
+        W_avionics = Variable('W_{avionics}', 2, 'lbf', 'Avionics weight')
+        #W_tank = Variable('W_{tank}','lbf','Fuel tank weight')
+        W_fuse = Variable('W_{fuse}',20,'lbf','Fuselage weight')
+        W_wing = Variable('W_{wing}','lbf','Total wing structural weight')
+        W = Variable('W', 'lbf', 'Aircraft weight') 
+
+        wl = Variable('wl', 'lbf/ft^2', 'wing loading')
+
+        #Structural ratios
+        t_c = Variable('t_c',0.1,'-','thickness ratio') #find better number
+        #taperRatio = Variable('taperRatio','-','Taper ratio')
+
+        #Structural lengths
+        #Spar and caps are created assuming an I-beam design
+        h_spar = Variable('h_{spar}','m','Spar height') 
+        t_cap = Variable('t_{cap}',.028,'in','Spar cap thickness') #arbitrarily placed based on available cf
+        w_cap = Variable('w_{cap}','in','Spar cap width')
+        c = Variable('c','ft','Wing chord') #assumes straight, untapered wing
+
+        #Structural areas
+        A_capcent = Variable('A_{capcent}','m**2','Cap area at center')
+        A_cap = Variable('A_{cap}','m**2','Cap area') #currently assumes constant area
+            
+        #Structural volumes
+        Vol_cap = Variable('Vol_{cap}','m**3','Cap volume')
+        Vol_fuel = Variable('Vol_{fuel}','m**3','Fuel Volume')
+
+        #Structural evaluation parameters
+        M = Variable('M', 'N*m','Center bending moment')
+        F = Variable('F','N','Load on wings')
         S_l = Variable('S_{load}','Pa','Shear load') #need to add constraint
         N = Variable('N',5,'-','Load factor') #load rating for max number of g's
-        P = Variable('P', 'N', 'cap load')
-        c = Variable('c','ft','wing chord') #assumes straight, untapered wing
-        rho_cap = Variable('rho_{cap}',1.76, 'g/cm^3','density of cf')
-        t_cap = Variable('t_{cap}',.028,'in','spar cap thickness') #arbitrarily placed based on available cf
-        w_cap = Variable('w_{cap}','in','spar cap width')
-        W = Variable('W', 'lbf', 'Aircraft weight')
-        d_tip_max = Variable('d_{tip_max}','ft','max wing tip deflection')
-        W_wing = Variable('W_{wing}','lbf','Total wing structural weight')
-       
-        t_c = Variable('t_c',0.1,'-','thickness ratio') #find better number
+        P = Variable('P', 'N', 'Cap load')
 
-        # Engine Weight Model
+        d_tip_max = Variable('d_{tip_max}','ft','max wing tip deflection')
+        d_tip = Variable('d_{tip}','ft','Tip deflection') #need to add constraint
+
+        # Engine Model
         W_eng = Variable('W_{eng}', 6, 'lbf', 'Engine weight')
         #P_shaft_max_sl = Variable('P_{shaft max sl}',5.4,'hp','Maximum power at sea level')
         #P_shaft_max =  Variable('P_{shaft max}','hp','Maximum power at altitude')
@@ -102,19 +123,21 @@ class GasPoweredHALE(Model):
         #constraints.extend([W_eng >= W_engmin,
         #                    W_eng <= W_engmax,
         #                    W_eng >= (P_shaft/eta_t)**1.1572*eng_cnst* units('lbf/watt^1.1572')])
-        #W_eng_installed = Variable('W_{eng-installed}','lbf','Installed engine weight')
+        W_eng_installed = Variable('W_{eng-installed}','lbf','Installed engine weight')
         
-        #constraints.extend([W_eng >= W_engmin,
-         #                   W_eng <= W_engmax,
-                            #W_eng_installed >= 2.572*W_eng**0.922*units('lbf')**0.078])
+        constraints.extend([
+        					#W_eng >= W_engmin,
+        					#W_eng <= W_engmax,
+                            W_eng_installed >= 2.572*W_eng**0.922*units('lbf')**0.078,
+                            #W_fuse = 2.7*(W_fuel/),
+                            ])
 
-        # Weight model
-        W_fuel = Variable('W_{fuel}', 'lbf', 'Fuel Weight')
-        W_zfw = Variable('W_{zfw}', 'lbf', 'Zero fuel weight')
-        W_avionics = Variable('W_{avionics}', 2, 'lbf', 'Avionics weight')
-        wl = Variable('wl', 'lbf/ft^2', 'wing loading')
+		# Fuel Volume 
+        rho_fuel = Variable('\\rho_{fuel}', 719*0.45359, 'lbf/m^3', 'density of gasoline')
+        constraints.extend([#S**1.5*A**-0.5*t_c >= W_fuel/g/rho_fuel
+        					Vol_fuel == W_fuel/rho_fuel])
 
-        g = Variable('g', 9.81, 'm/s^2', 'Gravitational acceleration')
+        # Structural constraints
 
         constraints.extend([M_skin >= rho_skin*S*(1.977 + .52*t_c),
                             F == W_cent*N,
@@ -122,13 +145,13 @@ class GasPoweredHALE(Model):
                             M == b*F/8,
                             P >= M/h_spar,
                             A_capcent >= P/sig,
-                            V_cap >= A_capcent*b/3,
-                            M_cap == rho_cap*V_cap,
+                            Vol_cap >= A_capcent*b/3,
+                            M_cap == rho_cap*Vol_cap,
                             h_spar <= t_c*c,
-                            W_cent >= W_fix + W_fuel + W_eng + W_fuse + W_avionics,
+                            W_cent >= W_fix + W_fuel + W_eng_installed + W_fuse + W_avionics,
                             W_wing >= M_skin*g+M_cap*g,
                             W >= W_cent + W_wing*1.3, #1.2 factor to account for tail weight
-                            W_zfw >= W_fix +W_eng+W_fuse+M_skin*g + M_cap*g + W_avionics,
+                            W_zfw >= W_fix +W_eng_installed+W_fuse+M_skin*g + M_cap*g + W_avionics,
                             w_cap == A_capcent/t_cap,
                             wl ==W/S,
                             d_tip == b**2*sig/(4*E_cap*h_spar),
@@ -203,10 +226,7 @@ class GasPoweredHALE(Model):
                             h <= h_max])
                             # model predicting worse case scenario at 45 deg latitude
 
-        # fuel volume model
-        #rho_fuel = Variable('\\rho_{fuel}', 719, 'kg/m^3', 'density of gasoline')
-        #constraints.extend([S**1.5*A**-0.5*t_c >= W_fuel/g/rho_fuel])
-
+        
         # Climb model
         #rho_sl = Variable('\\rho_{sl}',1.225,'kg/m**3','Density at sea level')
         #P_shaft_lapse = Variable('P_{shaft-lapse}',0.714/40000,'1/ft','Shaft power lapse rate')
