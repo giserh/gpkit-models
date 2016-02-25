@@ -1,6 +1,7 @@
 from numpy import pi
 from gpkit import Variable, Model, units
 from gpkit.tools import te_exp_minus1
+import gpkit
 gpkit.settings['latex_modelname'] = False
 
 class GasPoweredHALE(Model):
@@ -51,13 +52,13 @@ class GasPoweredHALE(Model):
         RPM = Variable('RPM','1/min','Propeller rotation speed')
         D_Prop = Variable('D_{Prop}',2,'ft','Propeller diameter')
 
-        eta_prop = Variable(r'\eta_{prop}',0.85,'-', 'Propulsive efficiency')
+        eta_prop = Variable(r'\eta_{prop}',0.8,'-', 'Propulsive efficiency')
 
         MTip = Variable('MTip','-','Propeller tip Mach number')
 
-        constraints.extend([T == P_shaft*(CThrust/CPower)/(RPM*D_Prop),
-                            #eta_prop <= T*V/P_shaft,
-                            eta_prop == 1/(2*pi)*(CThrust/CTorque)*JAdvance,
+        constraints.extend([#T == P_shaft*(CThrust/CPower)/(RPM*D_Prop),
+                            eta_prop <= T*V/P_shaft,
+                            #eta_prop == 1/(2*pi)*(CThrust/CTorque)*JAdvance,
                             #JAdvance == V/(RPM*D_Prop),
                             #JAdvance >= 1, JAdvance <= 2.8,
                             #JAdvance == 1.8/0.23*CPower + 0.23,
@@ -89,7 +90,7 @@ class GasPoweredHALE(Model):
         W = Variable('W', 'lbf', 'Aircraft weight') 
 
         #Structural ratios
-        tau = Variable('tau',0.1,'-','Airfoil thickness ratio') #find better number
+        tau = Variable('tau',0.12,'-','Airfoil thickness ratio') #find better number
         LoverA = Variable('LoverA', 'lbf/ft^2', 'Wing loading')
         lam_c = Variable('lam_c','-','Taper ratio')
 
