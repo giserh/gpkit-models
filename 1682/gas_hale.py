@@ -53,14 +53,14 @@ class GasPoweredHALE(Model):
         MTip = Variable('MTip','-','Propeller tip Mach number')
 
         constraints.extend([T == P_shaft*(CThrust/CPower)/(RPM*D_Prop),
-                            eta_prop == T*V/P_shaft,
-                            eta_prop == 1/(2*pi)*(CThrust/CTorque)*JAdvance,
+                            #eta_prop <= T*V/P_shaft,
+                            #eta_prop == 1/(2*pi)*(CThrust/CTorque)*JAdvance,
                             #JAdvance == V/(RPM*D_Prop),
                             #JAdvance >= 1, JAdvance <= 2.8,
                             #JAdvance == 1.8/0.23*CPower + 0.23,
                             #CPower == P_shaft/(rho*RPM**3*D_Prop**5),
                             #CThrust == T/(rho*RPM**2*D_Prop**4),
-                            #P_shaft >= 2*pi*RPM*(CTorque*rho*RPM**2*D_Prop**5),
+                            #P_shaft >= 2*pi*RPM*(CTorque*rho*RPM**2*D_Prop**5)])
                             ])
 
         #Structure parameters

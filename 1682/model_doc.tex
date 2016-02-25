@@ -1,0 +1,162 @@
+\documentclass[10pt, a4paper]{article}
+\usepackage{latexsym}
+\usepackage{amssymb,amsmath}
+\usepackage[pdftex]{graphicx}
+\newcommand{\dbar}[1]{\Bar{\Bar{#1}}}
+
+\topmargin = 0.1in \textwidth=5.7in \textheight=8.6in
+
+\oddsidemargin = 0.1in \evensidemargin = 0.1in
+
+% headers
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\chead{} 
+\rhead{\thepage} 
+% footer
+\lfoot{\small\scshape 16.82} 
+\cfoot{} 
+%%%% insert your name here %%%%
+\rfoot{\footnotesize HALE Project} 
+\renewcommand{\headrulewidth}{.3pt} 
+\renewcommand{\footrulewidth}{.3pt}
+\setlength\voffset{-0.25in}
+\setlength\textheight{648pt}
+
+\begin{document}
+
+\title{16.82 HALE Gpkit Models and Variables}
+\maketitle
+
+
+\section*{Objective Function}
+
+\[ \begin{array}{ll}
+
+\text{minimize}
+    & {W}\mathrm{~\left[ lbf \right]} 
+\end{array} \]
+    
+\section*{Constraints}
+
+\[ \begin{array}{ll} 
+\text{Steady Level Flight Condition}
+    & {W} = 0.5{C_L} {S} {V}^{2} {\rho} \\
+    & {Thrust} \geq 0.5{C_D} {S} {V}^{2} {\rho} \\
+\text{} \\
+\text{Aerodynamic Model}
+    & {C_D} \geq 0.3183\frac{{C_L}^{2}}{{AR} {e}} + 2{C_f} {K_{wing}} + {C_L}^{16} {cl_{16}} + {C_{d0}} \\
+    & {b}^{2} = {AR} {S} \\
+    & {C_{L-max}} \geq {C_L} \\
+    & {Re} = \frac{{S}^{0.5} {V} {\rho}}{{AR}^{0.5} {\mu}} \\
+    & {C_f} \geq \frac{0.074}{{Re}^{0.2}} \\
+    \text{} \\
+    & {C_{L-max}} \gets 1.5 \\
+    & {C_{d0}} \gets 0.02 \\
+    & {K_{wing}} \gets 1.3 \\
+    & {\mu} \gets 1.5 \times 10^{-5}~\mathrm{\tfrac{N\cdot s}{m^{2}}} \\
+    & {cl_{16}} \gets 0.0001 \\
+    & {e} \gets 0.9 \\
+\text{} \\
+\text{Engine Weight Model}
+    & {W_{eng}} \geq \frac{{P_{shaft}}^{1.2} {eng_{cnst}}}{{\eta_t}^{1.2}} \\
+    & {W_{eng-tot}} \geq 2.572{W_{eng}}^{0.92} \\
+    \text{} \\
+    & {\eta_t} \gets 0.5 \\
+    & {eng_{cnst}} \gets 0.0013 \\
+\text{} \\
+\text{Fuel Volume Model}
+    & {Vol_{fuel}} = \frac{{W_{fuel}}}{{\rho_{fuel}}} \\
+    \text{} \\
+    & {\rho_{fuel}} \gets 6.01~\mathrm{\tfrac{lbf}{liquid_gallon}} \\
+    \end{array} \]
+    
+\[ \begin{array}{ll} 
+\text{Structural Model}
+    & {m_{skin}} \geq 0.52{S} {rho_{skin}} {toverc} + 1.977{S} {rho_{skin}} \\
+    & {F} = {LF} {W_{cent}} \\
+    & {c} = \frac{{S}}{{b}} \\
+    & {Mom} = 0.125{F} {b} \\
+    & {L_{cap}} \geq \frac{{Mom}}{{h_{spar}}} \\
+    & {A_{capcent}} \geq \frac{{L_{cap}}}{{sigma_capma_{cap}}} \\
+    & {Vol_{cap}} \geq 0.3333{A_{capcent}} {b} \\
+    & {m_{cap}} = {Vol_{cap}} {rho_{cap}} \\
+    & {c} {toverc} \geq {h_{spar}} \\
+    & {w_{cap}} = \frac{{A_{capcent}}}{{t_{cap}}} \\
+    & {\delta_{tip}} = 0.25\frac{{b}^{2} {sigma_capma_{cap}}}{{E_{cap}} {h_{spar}}} \\
+    \text{} \\
+    & 0.125{b} \geq {\delta_{tip}} \\
+    & {E_{cap}} \gets 2 \times 10^{7}~\mathrm{pound_force_per_square_inch} \\
+    & {LF} \gets 5 \\
+    & {rho_{cap}} \gets 1.76~\mathrm{\tfrac{g}{cm^{3}}} \\
+    & {rho_{skin}} \gets 200~\mathrm{\tfrac{g}{m^{2}}} \\
+    & {sigma_capma_{cap}} \gets 4.75 \times 10^{8}~\mathrm{Pa} \\
+    & {t_{cap}} \gets 0.028~\mathrm{in} \\
+    & {toverc} \gets 0.1 \\
+\text{} \\
+\text{Weight Model}
+    & {W_{cent}} \geq {W_{avionics}} + {W_{eng-tot}} + {W_{fix}} + {W_{fuel}} + {W_{fuse}} \\
+    & {W_{wing}} \geq {g} {m_{cap}} + {g} {m_{skin}} \\
+    & {W} \geq 1.3{W_{wing}} + {W_{cent}} \\
+    & {W_{zfw}} \geq 0.2248{g} {m_{cap}} + 0.2248{g} {m_{skin}} + {W_{avionics}} + {W_{eng-tot}} + {W_{fix}} + {W_{fuse}} \\
+    & {LoverA} = \frac{{W}}{{S}} \\
+    \text{} \\
+    & {W_{avionics}} \gets 2~\mathrm{lbf} \\
+    & {W_{eng}} \gets 6~\mathrm{lbf} \\
+    & {W_{fix}} \gets 10~\mathrm{lbf} \\
+    & {W_{fuse}} \gets 20~\mathrm{lbf} \\
+    & {g} \gets 9.81~\mathrm{\tfrac{m}{s^{2}}} \\
+\text{} \\
+\text{Breguet Range Model}
+    & {z_{bre}} \geq 0.1432\frac{{BSFC} {C_D} {V} {t}}{{C_L} {\eta_{prop}}} \\
+    & \frac{{W_{fuel}}}{{W_{zfw}}} \geq 0.1667{z_{bre}}^{3} + 0.5{z_{bre}}^{2} + {z_{bre}} \\
+    \text{} \\
+    & {BSFC} \gets 0.6~\mathrm{\tfrac{lbf}{\left(hp\cdot hr\right)}} \\
+    & {t} \gets 6~\mathrm{day} \\
+\text{} \\
+\text{Atmospheric Model}
+    & 2 \times 10^{4} \geq {h} \\
+    & {T_{sl}} \geq 0.3048{L_{atm}} {h} + {T_{atm}} \\
+    & \frac{{T_{atm}}^{4.3} {p_{sl}}}{{R_{spec}} {T_{sl}}^{5.3}} \geq {\rho} \\
+    & {a_{atm}} = {R_{spec}}^{0.5} {T_{atm}}^{0.5} {\gamma}^{0.5} \\
+    \text{} \\
+    & {L_{atm}} \gets 0.0065~\mathrm{\tfrac{K}{m}} \\
+    & {R_{spec}} \gets 287.1~\mathrm{\tfrac{J}{\left(K\cdot kg\right)}} \\
+    & {T_{sl}} \gets 288.1~\mathrm{K} \\
+    & {\gamma} \gets 1.4 \\
+    & {p_{sl}} \gets 1.013 \times 10^{5}~\mathrm{Pa} \\
+\end{array} \]
+    
+\[ \begin{array}{ll} 
+\text{Propellor Model}
+    & {Thrust} = \frac{{C_{Thrust}} {P_{shaft}}}{{C_{Power}} {D_{Prop}} {RPM}} \\
+    & {MTip} = 0.01596\frac{{D_{Prop}} {RPM}}{{a_{atm}}} \\
+    \text{} \\
+    & 0.85 \geq {MTip} \\
+    & {C_{Power}} \gets 0.25 \\
+    & {C_{Thrust}} \gets 0.5 \\
+    & {D_{Prop}} \gets 2~\mathrm{ft} \\
+    & {\eta_{prop}} \gets 0.85 \\
+\text{} \\
+\text{Footprint Model}
+    & {h} \geq 0.008727{\theta_{look-up}} {d_{footprint}} + 0.125\frac{{d_{footprint}}^{2}}{{R_{earth}}} + 8.861 \times 10^{-7}{\theta_{look-up}}^{3} {d_{footprint}} \\
+    \text{} \\
+    & {R_{earth}} \gets 6371~\mathrm{km} \\
+    & {\theta_{look-up}} \gets 5 \\
+    & {d_{footprint}} \gets 100~\mathrm{km} \\
+\text{} \\
+\text{Wind Velocity Model}
+    & {V_{wind}} \geq {h} {wd_{cnst}} + {wd_{ln}} \\
+    & {V} \geq {V_{wind}} \\
+    & {h} \geq {h_{min}} \\
+    \text{} \\
+    & {h_{max}} \geq {h} \\
+    & {h_{max}} \gets 2.087 \times 10^{4}~\mathrm{ft} \\
+    & {h_{min}} \gets 1.18 \times 10^{4}~\mathrm{ft} \\
+    & {wd_{cnst}} \gets 0.0015~\mathrm{\tfrac{m}{\left(ft\cdot s\right)}} \\
+    & {wd_{ln}} \gets 8.845~\mathrm{\tfrac{m}{s}} \\
+\end{array} \]
+    
+
+
+\end{document}
