@@ -1,6 +1,7 @@
 from numpy import pi
 from gpkit import Variable, Model, units
 from gpkit.tools import te_exp_minus1
+gpkit.settings['latex_modelname'] = False
 
 class GasPoweredHALE(Model):
     def setup(self):
