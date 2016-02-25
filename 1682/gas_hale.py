@@ -21,7 +21,8 @@ class GasPoweredHALE(Model):
 
         constraints.extend([#P_shaft == V*W*CD/CL/eta_prop,   # eta*P = D*V
                             W == 0.5*rho*V**2*CL*S,
-                            T >= 0.5*rho*V**2*CD*S])
+                            #T >= 0.5*rho*V**2*CD*S
+                            ])
 
         # Aerodynamics model
         Cd0 = Variable('C_{d0}', 0.02, '-', "non-wing drag coefficient")
@@ -50,11 +51,12 @@ class GasPoweredHALE(Model):
         D_Prop = Variable('D_{Prop}',2,'ft','Propeller diameter')
 
         eta_prop = Variable(r'\eta_{prop}',0.85,'-', 'Propulsive efficiency')
+
         MTip = Variable('MTip','-','Propeller tip Mach number')
 
         constraints.extend([T == P_shaft*(CThrust/CPower)/(RPM*D_Prop),
                             #eta_prop <= T*V/P_shaft,
-                            #eta_prop == 1/(2*pi)*(CThrust/CTorque)*JAdvance,
+                            eta_prop == 1/(2*pi)*(CThrust/CTorque)*JAdvance,
                             #JAdvance == V/(RPM*D_Prop),
                             #JAdvance >= 1, JAdvance <= 2.8,
                             #JAdvance == 1.8/0.23*CPower + 0.23,
@@ -72,7 +74,7 @@ class GasPoweredHALE(Model):
         #Weights and masses
         m_cap = Variable('m_{cap}','kg','Cap mass')
         m_skin = Variable('m_{skin}','kg','Skin mass')
-        sigma_cap = Variable('sigma_capma_{cap}',475e6,'Pa','Cap stress') 
+        sigma_cap = Variable('sigma_{cap}',475e6,'Pa','Cap stress') 
         #http://www.performance-composites.com/carbonfibre/mechanicalproperties_2.asp
 
         W_cent = Variable('W_{cent}', 'lbf','Center aircraft weight')
@@ -86,14 +88,14 @@ class GasPoweredHALE(Model):
         W = Variable('W', 'lbf', 'Aircraft weight') 
 
         #Structural ratios
-        toverc = Variable('toverc',0.1,'-','Airfoil thickness ratio') #find better number
+        tau = Variable('tau',0.1,'-','Airfoil thickness ratio') #find better number
         LoverA = Variable('LoverA', 'lbf/ft^2', 'Wing loading')
-        gamma_c = Variable('gamma_c','-','Taper ratio')
+        lam_c = Variable('lam_c','-','Taper ratio')
 
         #Structural lengths
-        #Spar and caps are created assuming an I-beam desigma_capn
+        #Spar and caps are created assuming an I-beam design
         h_spar = Variable('h_{spar}','m','Spar height') 
-        tovercap = Variable('t_{cap}',.028,'in','Spar cap thickness') #arbitrarily placed based on available cf
+        t_cap = Variable('t_{cap}',.028,'in','Spar cap thickness') #arbitrarily placed based on available cf
         w_cap = Variable('w_{cap}','in','Spar cap width')
         c = Variable('c','ft','Wing chord') #assumes straight, untapered wing
 
@@ -106,11 +108,11 @@ class GasPoweredHALE(Model):
         Vol_fuel = Variable('Vol_{fuel}','m**3','Fuel Volume')
 
         #Structural evaluation parameters
-        Mom = Variable('Mom', 'N*m','Center bending moment')
+        M_cent = Variable('M_cent', 'N*m','Center bending moment')
         F = Variable('F','N','Load on wings')
-        #S_l = Variable('S_{load}','Pa','Shear load') #need to add constraint
-        LF = Variable('LF',5,'-','Load factor') #load rating for max number of g's
-        L_cap = Variable('L_{cap}', 'N', 'Cap load')
+        SL = Variable('SL','Pa','Shear load') #need to add constraint
+        NMax = Variable('NMax',5,'-','Load factor') #load rating for max number of g's
+        P_cap = Variable('P_{cap}', 'N', 'Cap load')
         delta_tip = Variable('\delta_{tip}','ft','Tip deflection') #need to add constraint
 
         # Engine Model
@@ -133,23 +135,23 @@ class GasPoweredHALE(Model):
 
         # Structural constraints
 
-        constraints.extend([m_skin >= rho_skin*S*(1.977 + .52*toverc),
-                            F == W_cent*LF,
+        constraints.extend([m_skin >= rho_skin*S*(1.977 + .52*tau),
+                            F == W_cent*NMax,
                             c == S/b,
-                            Mom == b*F/8,
-                            L_cap >= Mom/h_spar,
-                            A_capcent >= L_cap/sigma_cap,
+                            M_cent == b*F/8,
+                            P_cap >= M_cent/h_spar,
+                            A_capcent >= P_cap/sigma_cap,
                             Vol_cap >= A_capcent*b/3,
                             m_cap == rho_cap*Vol_cap,
-                            h_spar <= toverc*c,
+                            h_spar <= tau*c,
                             W_cent >= W_payload + W_fuel + W_engtot + W_fuse + W_avionics,
                             W_wing >= m_skin*g+m_cap*g,
                             W >= W_cent + W_wing*1.3, #1.2 factor to account for tail weight
                             W_zfw >= W_payload +W_engtot+W_fuse+m_skin*g + m_cap*g + W_avionics,
-                            w_cap == A_capcent/tovercap,
-                            LoverA ==W/S,
+                            w_cap == A_capcent/t_cap,
+                            LoverA == W/S,
                             delta_tip == b**2*sigma_cap/(4*E_cap*h_spar),
-                            delta_tip <= b/8])
+                            delta_tip <= b/5])
 
         # Breguet Range
         z_bre = Variable("z_{bre}", "-", "breguet coefficient")
