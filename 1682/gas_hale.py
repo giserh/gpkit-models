@@ -24,27 +24,27 @@ class GasPoweredHALE(Model):
 
         constraints.extend([P_shaft == V*W*CD/CL/eta_prop,   # eta*P = D*V
                             W == 0.5*rho*V**2*CL*S,
-                            #T >= 0.5*rho*V**2*CD*S
+                            T >= 0.5*rho*V**2*CD*S
                             ])
 
         # Aerodynamics model
-        Cd0 = Variable('C_{d0}', 0.02, '-', "non-wing drag coefficient")
-        CLmax = Variable('C_{L-max}', 1.5, '-', 'maximum lift coefficient')
-        e = Variable('e', 0.9, '-', "spanwise efficiency")
-        AR = Variable('AR', '-', "aspect ratio")
-        b = Variable('b', 'ft', 'span')
-        mu = Variable(r'\mu', 1.5e-5, 'N*s/m^2', "dynamic viscosity")
+        Cd0 = Variable('C_{d0}', 0.02, '-', "Non-wing drag coefficient")
+        CLmax = Variable('C_{L-max}', 1.5, '-', 'Maximum lift coefficient')
+        e = Variable('e', 0.9, '-', "Spanwise efficiency")
+        AR = Variable('AR', '-', "Aspect ratio")
+        b = Variable('b', 'ft', 'Span')
+        mu = Variable(r'\mu', 1.5e-5, 'N*s/m^2', "Dynamic viscosity")
         Re = Variable("Re", '-', "Reynolds number")
-        Cf = Variable("C_f", "-", "wing skin friction coefficient")
-        Kwing = Variable("K_{wing}", 1.3, "-", "wing form factor")
-        cl_16 = Variable("cl_{16}", 0.0001, "-", "profile stall coefficient")
-        CDfuse = Variable("C_{D-fuse}", "-", "fueslage drag")
-        Kfuse = Variable("K_{fuse}", 1.3, "-", "fuselage form factor")
-        S_fuse = Variable("S_{fuse}", "ft^2", "fuselage surface area")
-        Cffuse = Variable("C_{f-fuse}", 0.001, "-", "fuselage skin friction coefficient")
+        Cf = Variable("C_f", "-", "Wing skin friction coefficient")
+        Kwing = Variable("K_{wing}", 1.3, "-", "Wing form factor")
+        cl_16 = Variable("cl_{16}", 0.0001, "-", "Profile stall coefficient")
+        CDfuse = Variable("C_{D-fuse}",0, "-", "Fuselage drag")
+        #Kfuse = Variable("K_{fuse}", 1.3, "-", "Fuselage form factor")
+        #S_fuse = Variable("S_{fuse}", "ft^2", "Fuselage surface area")
+        #Cffuse = Variable("C_{f-fuse}", 0.001, "-", "Fuselage skin friction coefficient")
 
         constraints.extend([CD >= CDfuse + 2*Cf*Kwing + CL**2/(pi*e*AR) + cl_16*CL**16,
-                            CDfuse >= Kfuse*S_fuse*Cffuse*units('1/ft^2'),
+                            #CDfuse >= Kfuse*S_fuse*Cffuse*units('1/ft^2'),
                             b**2 == S*AR,
                             CL <= CLmax, 
                             Re == rho*V/mu*(S/AR)**0.5,
@@ -63,7 +63,7 @@ class GasPoweredHALE(Model):
 
         constraints.extend([#T == P_shaft*(CThrust/CPower)/(RPM*D_Prop),
                             #eta_prop <= T*V/P_shaft,
-                            #eta_prop == 1/(2*pi)*(CThrust/CTorque)*JAdvance,
+                            eta_prop == 1/(2*pi)*(CThrust/CTorque)*JAdvance,
                             #JAdvance == V/(RPM*D_Prop),
                             #JAdvance >= 1, JAdvance <= 2.8,
                             #JAdvance == 1.8/0.23*CPower + 0.23,
@@ -86,7 +86,7 @@ class GasPoweredHALE(Model):
         # Structural Weights and Masses
         m_cap = Variable('m_{cap}','kg','Cap mass')
         m_skin = Variable('m_{skin}','kg','Skin mass')
-        m_fuse = Variable('m_{fues}', 'kg', 'fuselage mass')
+        m_fuse = Variable('m_{fuse}', 'kg', 'fuselage mass')
         W_cent = Variable('W_{cent}', 'lbf','Center aircraft weight')
 
         # Structural ratios
@@ -120,11 +120,11 @@ class GasPoweredHALE(Model):
         delta_tip = Variable(r'\delta_{tip}','ft','Tip deflection') #need to add constraint
 
         # Structural constraints
-        constraints.extend([m_skin >= rho_skin*S*(1.977 + .52*tau),
-                            m_fuse >= S_fuse*rho_skin,
-                            (l_fuse/k1fuse)**3 >= Vol_fuse,
-                            (S_fuse/k2fuse)**3 >= Vol_fuse**2,
-                            Vol_fuse >= Vol_fuel,
+        constraints.extend([#m_skin >= rho_skin*S*(1.977 + .52*tau),
+                            #m_fuse >= S_fuse*rho_skin,
+                            #(l_fuse/k1fuse)**3 >= Vol_fuse,
+                            #(S_fuse/k2fuse)**3 >= Vol_fuse**2,
+                            #Vol_fuse >= Vol_fuel,
                             F == W_cent*N_Max,
                             c == S/b,
                             M_cent == b*F/8,
