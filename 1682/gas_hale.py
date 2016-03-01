@@ -24,7 +24,7 @@ class GasPoweredHALE(Model):
 
         constraints.extend([P_shaft >= V*W*CD/CL/eta_prop,   # eta*P = D*V
                             W == 0.5*rho*V**2*CL*S,
-                            T >= 0.5*rho*V**2*CD*S
+                            #T >= 0.5*rho*V**2*CD*S
                             ])
 
         # Aerodynamics model
