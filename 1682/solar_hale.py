@@ -4,7 +4,7 @@ from gpkit import Variable, Model, units
 
 class SolarHALE(Model):
     """High altitude long endurance solar UAV"""
-    def setup(self):
+    def __init__(self, **kwargs):
         """Setup method should return objective, list of constraints"""
         constraints = []
 
@@ -90,7 +90,7 @@ class SolarHALE(Model):
         M_atm = Variable("M_{atm}", 0.0289644, "kg/mol",
                          "Molar mass of dry air")
         R_atm = Variable("R_{atm}", 8.31447, "J/mol/K")
-        TH = (g*M_atm/R_atm/L_atm).value.magnitude  # dimensionless
+        TH = (g*M_atm/R_atm/L_atm).value
         constraints.extend([
             h <= 20000*units.m,  # Model valid to top of troposphere
             T_sl >= T_atm + L_atm*h,     # Temp decreases w/ altitude
@@ -109,7 +109,7 @@ class SolarHALE(Model):
 
         objective = W
 
-        return objective, constraints
+        Model.__init__(self,objective,constraints, **kwargs)
 
 if __name__ == "__main__":
     M = SolarHALE()
