@@ -2,10 +2,11 @@
 from __future__ import print_function
 import sys
 from distutils.core import setup
+from setuptools import find_packages
 
 LONG_DESCRIPTION = """
 GPkit Models is a library of geometric programming and signomial programming
-models that can be manipulated and solved using 
+models that can be manipulated and solved using
 `GPkit <https://github.com/hoburg/gpkit/>`_.
 
 `Documentation <http://gpkit.rtfd.org/>`_
@@ -42,11 +43,18 @@ setup(
     author="MIT Department of Aeronautics and Astronautics",
     author_email="gpkit@mit.edu",
     url="https://www.github.com/hoburg/gpkit-models",
-    install_requires=["numpy", "scipy", "pint"],
+    install_requires=["numpy>=1.12", "scipy", "pint", "future"],
     version="0.0.0.0",
-    packages=["gpkitmodels", "gpkitmodels.aircraft", "gpkitmodels.manufacturing",
-              "gpkitmodels.npv", "gpkitmodels.1682"],
-    package_data={},
+    packages=find_packages(),
+    package_data={"gpkitmodels": ["GP/aircraft/wing/*.csv",
+                                  ("GP/aircraft/fuselage/"
+                                   "fuselage_profile_drag/*.csv"),
+                                  "GP/aircraft/engine/*.csv",
+                                  "GP/aircraft/motor/*.csv",
+                                  "GP/aircraft/prop/*.csv",
+                                  "SP/aircraft/prop/*.csv",
+                                  "GP/aircraft/engine/DF70/*.csv",
+                                  "GP/aircraft/tail/*.csv"]},
     license=LICENSE,
     long_description=LONG_DESCRIPTION,
 )
